@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PTSL Sederhana — 18 Kondisi</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+:root{--blue:#1769aa;--navy:#15364f;--bg:#f3f6f8;--line:#d9e2e8;--muted:#667784;--green:#147a55;--red:#b42318;--amber:#9a5b00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#1d2d38;font:14px/1.5 "Segoe UI",Arial,sans-serif}button,input{font:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 18px 50px}h1{margin:0;color:var(--navy);font-size:28px}.lead{color:var(--muted);margin:5px 0 22px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 5px 18px #15364f0d;margin-bottom:14px}.drop{border:2px dashed #8fb9d4;border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:#f9fcfe}.drop.drag{background:#eaf6fc;border-color:var(--blue)}.drop b{display:block;font-size:18px;color:var(--navy)}.muted{color:var(--muted)}.files{display:grid;gap:8px;margin-top:14px}.file{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);padding:10px 12px;border-radius:10px}.btn{border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#fff;color:var(--navy);border:1px solid var(--line)}.danger{color:var(--red)}.btn:disabled{opacity:.45;cursor:not-allowed}.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}.hidden{display:none!important}.targets table{min-width:650px}.input{width:130px;border:1px solid #bccbd5;border-radius:8px;padding:8px 10px}.notice{border-radius:10px;padding:12px 14px;margin:12px 0}.notice.warn{background:#fff7e8;border:1px solid #efd4a4;color:#764600}.notice.danger{background:#fff0ee;border:1px solid #efc1bc;color:#861c14}.notice.good{background:#eaf8f2;border:1px solid #b9e1d0;color:#105d43}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}.stat small{color:var(--muted);display:block}.stat strong{font-size:23px;color:var(--navy)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%}th,td{padding:11px 12px;border-bottom:1px solid #e9eef1;text-align:left}th{background:var(--navy);color:#fff;white-space:nowrap}tbody tr:hover{background:#f3f9fc}.num{text-align:center;width:110px}.count{min-width:64px;border:0;border-radius:999px;padding:6px 12px;background:#e4f2fb;color:#105b8c;font-weight:800;cursor:pointer}.count.zero{background:#eef2f4;color:#8997a0;cursor:default}.done .count{background:#e5f6ee;color:var(--green)}.stage{font-weight:800;color:var(--navy)}.action{color:var(--muted)}.footnote{font-size:12px;color:var(--muted);margin-top:10px}.modal{position:fixed;inset:0;background:#102d40cc;display:grid;place-items:center;padding:18px;z-index:20}.dialog{width:min(1100px,96vw);max-height:92vh;background:#fff;border-radius:15px;display:flex;flex-direction:column;overflow:hidden}.dialog-head,.dialog-foot{padding:14px 17px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line)}.dialog-foot{border:0;border-top:1px solid var(--line)}.dialog-body{padding:16px;overflow:auto}.dialog h2{font-size:19px;margin:0;color:var(--navy)}.close{border:0;background:#edf2f5;border-radius:8px;width:36px;height:36px;font-size:21px;cursor:pointer}.detail-table{min-width:900px}.bug-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.bug-chip{background:#fff;border:1px solid #e6c38c;border-radius:999px;padding:5px 9px}.bug-link{background:none;border:0;padding:0;color:inherit;text-decoration:underline;font-weight:800;cursor:pointer}.reset{margin-left:auto}@media(max-width:760px){.summary{grid-template-columns:1fr 1fr}.file{grid-template-columns:1fr}.bar{align-items:stretch;flex-direction:column}.bar .btn{width:100%}h1{font-size:23px}.wrap{padding:18px 10px}.action{min-width:240px}}
+.detail-context{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.context-chip{background:#eaf5fb;border:1px solid #c5dfed;color:#174c6c;border-radius:9px;padding:7px 10px}.context-chip b{color:var(--navy)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Analisis PTSL — 18 Kondisi</h1>
+  <p class="lead">Unggah eviden, isi target, lalu lihat posisi setiap berkas dalam satu tabel sederhana.</p>
+
+  <section id="uploadCard" class="card">
+    <div id="drop" class="drop" tabindex="0">
+      <b>Unggah file eviden Excel</b>
+      <span class="muted">Klik atau tarik file .xlsx/.xls ke sini • satu file untuk satu desa</span>
+      <input id="fileInput" type="file" accept=".xlsx,.xls" multiple hidden>
+    </div>
+    <div id="fileList" class="files"></div>
+    <div class="bar"><span id="fileInfo" class="muted">Belum ada file.</span><button id="toTarget" class="btn primary" disabled>Isi target</button></div>
+  </section>
+
+  <section id="targetCard" class="card targets hidden">
+    <h2>Target per desa</h2>
+    <p class="muted">Target wajib diisi sebelum analisis. Pemeriksaan Nomor Berkas ganda dilakukan otomatis.</p>
+    <div class="table-wrap"><table><thead><tr><th>File</th><th>Kecamatan</th><th>Desa</th><th>Baris eviden</th><th>Target</th></tr></thead><tbody id="targetRows"></tbody></table></div>
+    <div id="targetWarning" class="notice danger hidden"></div>
+    <div class="bar"><button id="backUpload" class="btn secondary">Kembali</button><button id="analyze" class="btn primary">Analisis sekarang</button></div>
+  </section>
+
+  <section id="result" class="hidden">
+    <div class="bar" style="margin:0 0 14px"><div><h2 style="margin:0;color:var(--navy)">Rekap hasil analisis</h2><span id="scope" class="muted"></span></div><div><button id="downloadRecap" class="btn primary">Unduh Paket ZIP</button> <button id="reset" class="btn secondary">Ganti eviden</button></div></div>
+    <div class="summary">
+      <div class="stat"><small>Target</small><strong id="sumTarget">0</strong></div>
+      <div class="stat"><small>Berkas unik dianalisis</small><strong id="sumUnique">0</strong></div>
+      <div class="stat"><small>K1</small><strong id="sumK1">0</strong></div>
+      <div class="stat"><small>Duplikat diabaikan</small><strong id="sumDuplicate">0</strong></div>
+    </div>
+    <div id="duplicateNotice" class="notice warn hidden"></div>
+    <div id="anomalyNotice" class="notice danger hidden"></div>
+    <section class="card">
+      <h3 style="margin:0 0 4px;color:var(--navy)">Ringkasan Desa</h3>
+      <p class="muted" style="margin:0 0 12px">Capaian utama setiap desa setelah Nomor Berkas ganda dikeluarkan dari perhitungan.</p>
+      <div class="table-wrap"><table><thead><tr><th>No.</th><th>Kecamatan</th><th>Desa</th><th class="num">Target SHAT</th><th class="num">Sudah Terentry</th><th class="num">Kurang Entry</th><th class="num">Kelebihan Booking</th><th class="num">K1</th><th class="num">Capaian K1</th><th class="num">Duplikat/Bug</th></tr></thead><tbody id="summaryVillageRows"></tbody></table></div>
+    </section>
+    <section class="card">
+      <h3 style="margin:0 0 4px;color:var(--navy)">18 Tahapan PTSL</h3>
+      <p class="muted" style="margin:0 0 12px">Klik angka untuk melihat data relevan pada tahapan dan wilayah tersebut.</p>
+      <div class="table-wrap"><table id="recapMatrix"><thead><tr id="recapHead"></tr></thead><tbody id="conditionRows"></tbody></table></div>
+      <p class="footnote">Tahapan ditampilkan sebagai baris, sedangkan Desa dan Kecamatan digabung sebagai kolom. Seluruh hitungan memakai Nomor Berkas unik; baris ganda tidak dihitung.</p>
+    </section>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden">
+  <div class="dialog">
+    <div class="dialog-head"><div><h2 id="modalTitle"></h2><span id="modalSubtitle" class="muted"></span></div><button id="modalClose" class="close">×</button></div>
+    <div class="dialog-body"><div id="detailContext" class="detail-context"></div><div class="table-wrap"><table id="detailTable" class="detail-table"></table></div></div>
+    <div class="dialog-foot"><span id="detailCount" class="muted"></span><button id="exportDetail" class="btn primary">Unduh Excel</button></div>
+  </div>
+</div>
+
+<script>
+const CONDITIONS=[
+ {key:'overBooking',name:'Booking Berkas Melebihi Target',action:'Evaluasi dan hentikan booking tambahan. Dapat dilakukan penutupan berkas apabila Nomor Berkas tidak diperlukan.'},
+ {key:'noPemohon',name:'Nomor Berkas Tanpa Pemohon',action:'Lakukan entry identitas pemohon sesuai data KTP pemohon.'},
+ {key:'anomaliIdentitas',name:'Anomali KTP',action:'Lakukan entry KTP dengan benar.'},
+ {key:'alas',name:'Belum Alas Hak',action:'Lengkapi Nomor Alas Hak.'},
+ {key:'nib',name:'Belum Link NIB',action:'Lakukan pemberkasan dan Link NIB.'},
+ {key:'di305',name:'Belum Booking Daftar Isian (DI305)',action:'Klik Booking Daftar Isian pada KKP.'},
+ {key:'di201',name:'Belum Pengumuman (DI201B)',action:'Ketua Panitia Ajudikasi melakukan pengumuman data fisik dan data yuridis. Gunakan Nomor PBT yang sesuai untuk setiap desa.'},
+ {key:'expiredAnnouncement',name:'Pengumuman ≥14 Hari / Siap DI202',action:'Masa pengumuman 14 hari kalender telah selesai. Periksa keberatan atau sengketa. Pastikan RPD sudah diunggah dan Waka Yuridis sudah klik kesesuaian RPD.'},
+ {key:'di202',name:'Belum Pengesahan (DI202)',action:'Jika masa pengumuman belum 14 hari, tunggu sampai selesai. Jika sudah memenuhi ketentuan, tidak ada kendala, RPD sudah diunggah, dan kesesuaian RPD sudah diklik, lakukan pengesahan DI202.'},
+ {key:'su',name:'Belum Penomoran Surat Ukur',action:'Terbitkan atau lengkapi Nomor Surat Ukur berdasarkan data fisik yang telah disahkan. Puldadis membuat daftar eviden yang akan diterbitkan Nomor SU, memastikan penggunaan tanah sudah terisi, lalu menyerahkannya kepada Satgas Fisik.'},
+ {key:'validSu',name:'Belum Validasi/TTE Surat Ukur',action:'Waka Fisik melakukan validasi SU dan TTE Surat Ukur sampai DI307 SU terbentuk.'},
+ {key:'di310',name:'Belum DI310 — Usulan Pemberian Hak',action:'Khusus prosedur Pendaftaran Tanah Pertama Kali Pemberian Hak, buat dan tetapkan DI310 sebagai dasar pemberian hak. DI310 memerlukan TTE Kepala Kantor Pertanahan.'},
+ {key:'hak',name:'Belum Penerbitan Nomor Hak',action:'Terbitkan Nomor Hak dan pilih tipe hak sesuai jenis yang dimohonkan. Untuk prosedur Pemberian Hak, pastikan DI310 sudah tersedia terlebih dahulu.'},
+ {key:'validHak',name:'Belum Validasi/Paraf Buku Tanah',action:'Lakukan Validasi SITATA dan Paraf Buku Tanah (DI307 Hak).'},
+ {key:'di208',name:'Belum TTE Sertipikat (DI208)',action:'Lakukan TTE Sertipikat/DI208.'},
+ {key:'k1',name:'K1 / Cetak Sertipikat',action:'Lakukan pemeriksaan akhir atas kesesuaian Buku Tanah, Surat Ukur, dan sertipikat, lalu lanjutkan cetak sertipikat.'},
+ {key:'di301a',name:'Belum DI301A — Penyerahan Sertipikat',action:'Pastikan sertipikat yang fisiknya sudah diserahkan tetapi DI301A masih kosong segera dilakukan klik Serah (DI301A).'},
+ {key:'delivered',name:'Sudah Diserahkan — Sudah DI301A',action:'Sertipikat telah tercatat diserahkan melalui DI301A. Lakukan pemeriksaan akhir kesesuaian penerima dan arsip penyerahan.'}
+];
+const DETAIL_COLUMNS={
+ overBooking:['Nomor Berkas','No Berkas','Nama','Target SHAT Desa','Urutan Booking Unik','Kelebihan Booking Ke-','Risiko Booking'],
+ noPemohon:['Nomor Berkas','No Berkas','Nama','Nama Pemohon','Nik','NIK'],
+ anomaliIdentitas:['Nomor Berkas','No Berkas','Nama','Nama Pemohon','Nik','NIK'],
+ alas:['Nomor Berkas','No Berkas','Nama','Nik','NIK','Nomor Alas hak','Nomor Alas Hak'],
+ nib:['Nomor Berkas','No Berkas','Nama','Nomor Alas hak','Nomor Alas Hak','NIB'],
+ di305:['Nomor Berkas','No Berkas','Nama','NIB','DI305'],
+ di201:['Nomor Berkas','No Berkas','Nama','NIB','DI305','DI201B','PBT','Nomor PBT'],
+ expiredAnnouncement:['Nomor Berkas','No Berkas','Nama','DI201B','Nomor DI202','Tanggal Pengumuman DI201B','Tanggal Layak Disahkan','Umur Pengumuman (hari)','Lewat dari 14 Hari','Status Masa Pengumuman'],
+ di202:['Nomor Berkas','No Berkas','Nama','DI201B','Nomor DI202'],
+ su:['Nomor Berkas','No Berkas','Nama','Nomor DI202','SU'],
+ validSu:['Nomor Berkas','No Berkas','Nama','SU','DI307 SU'],
+ di310:['Nomor Berkas','No Berkas','Nama','Nama Prosedur','NamaProsedur','Prosedur','Jenis Prosedur','DI307 SU','DI310','DI 310','Nomor DI310','No DI310'],
+ hak:['Nomor Berkas','No Berkas','Nama','DI307 SU','Nomor hak'],
+ validHak:['Nomor Berkas','No Berkas','Nama','Nomor hak','DI307 Hak'],
+ di208:['Nomor Berkas','No Berkas','Nama','DI307 Hak','DI208'],
+ k1:['Nomor Berkas','No Berkas','Nama','Nomor hak','DI208']
+ ,di301a:['Nomor Berkas','No Berkas','Nama','Nomor hak','DI208','DI301A','DI 301A','Nomor DI301A'],
+ delivered:['Nomor Berkas','No Berkas','Nama','Nomor hak','DI208','DI301A','DI 301A','Nomor DI301A']
+};
+const REQUIRED_COLUMNS={overBooking:['Target SHAT Desa','Urutan Booking Unik','Kelebihan Booking Ke-'],noPemohon:['Nama','NIK'],anomaliIdentitas:['Nama','NIK'],alas:['Nomor Alas Hak'],nib:['Nomor Alas Hak','NIB'],di305:['NIB','DI305'],di201:['DI305','DI201B','Nomor PBT'],expiredAnnouncement:['DI201B','Tanggal Layak Disahkan','Umur Pengumuman (hari)','Lewat dari 14 Hari','Status Masa Pengumuman'],di202:['DI201B','Nomor DI202'],su:['Nomor DI202','SU'],validSu:['SU','DI307 SU'],di310:['Nama Prosedur','DI307 SU','DI310'],hak:['DI307 SU','DI310','Nomor Hak'],validHak:['Nomor Hak','DI307 Hak'],di208:['DI307 Hak','DI208'],k1:['Nomor Hak','DI208'],di301a:['DI208','DI301A'],delivered:['DI208','DI301A']};
+const SHEET_NAMES={overBooking:'01-Booking Lebih',noPemohon:'02-No Pemohon',anomaliIdentitas:'03-Anomali KTP',alas:'04-Alas Hak',nib:'05-Link NIB',di305:'06-DI305',di201:'07-DI201B',expiredAnnouncement:'08-Pengumuman 14 Hari',di202:'09-DI202',su:'10-No SU',validSu:'11-DI307 SU',di310:'12-DI310',hak:'13-No Hak',validHak:'14-DI307 Hak',di208:'15-DI208',k1:'16-K1',di301a:'17-DI301A',delivered:'18-Sudah DI301A'};
+let files=[],results={},duplicates=[],anomalies=[],detailRows=[],detailName='',recapRows=[];
+const $=id=>document.getElementById(id);
+const filled=v=>v!=null&&!['','NULL','null','.','0','NIK','NIK.','NIK:'].includes(String(v).trim());
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function value(row,names){const keys=Object.keys(row);for(const name of names){const k=keys.find(x=>norm(x)===norm(name));if(k!=null&&filled(row[k]))return row[k]}return ''}
+function berkasRaw(row){return value(row,['Nomor Berkas','No Berkas','No. Berkas','NomorBerkas','Status Berkas','Nomor Permohonan'])}
+function berkasKey(row){const raw=String(berkasRaw(row)||'').trim();const m=raw.match(/\d+\s*\/\s*\d{2,4}/);return (m?m[0]:raw).toUpperCase().replace(/\s+/g,'')}
+function displayBerkas(row){return String(berkasRaw(row)||'Tanpa nomor').trim()}
+
+async function addFiles(list){
+ for(const file of list){
+  if(files.some(x=>x.file.name===file.name&&x.file.size===file.size))continue;
+  try{
+   const wb=XLSX.read(await file.arrayBuffer(),{cellDates:true}),data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:true});
+   if(!data.length)throw Error('File tanpa data');
+   const desa=[...new Set(data.map(r=>String(value(r,['Desa'])||'').trim()).filter(Boolean))];
+   const kec=[...new Set(data.map(r=>String(value(r,['Kecamatan'])||'').trim()).filter(Boolean))];
+   files.push({file,data,desa:desa.length===1?desa[0]:'',kec:kec.length===1?kec[0]:'',valid:desa.length===1&&kec.length===1,issue:desa.length!==1?'Kolom Desa harus berisi satu desa':kec.length!==1?'Kolom Kecamatan harus berisi satu kecamatan':''});
+  }catch(e){files.push({file,data:[],valid:false,issue:e.message||'File tidak dapat dibaca'})}
+ }
+ renderFiles();
+}
+function renderFiles(){
+ $('fileList').innerHTML=files.map((f,i)=>`<div class="file"><b>${esc(f.file.name)}</b><span>${esc(f.kec||'Kecamatan tidak valid')}</span><span>${esc(f.desa||f.issue)}</span><button class="btn secondary danger" data-remove="${i}">Hapus</button></div>`).join('');
+ document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{files.splice(+b.dataset.remove,1);renderFiles()});
+ $('fileInfo').textContent=files.length?`${files.length} file • ${files.reduce((n,f)=>n+f.data.length,0).toLocaleString('id-ID')} baris eviden`:'Belum ada file.';
+ $('toTarget').disabled=!files.length||files.some(f=>!f.valid);
+}
+function showTargets(){
+ $('targetRows').innerHTML=files.map((f,i)=>`<tr><td>${esc(f.file.name)}</td><td>${esc(f.kec)}</td><td>${esc(f.desa)}</td><td>${f.data.length}</td><td><input class="input target" data-index="${i}" type="number" min="1" placeholder="Wajib"></td></tr>`).join('');
+ $('uploadCard').classList.add('hidden');$('targetCard').classList.remove('hidden');
+}
+function procedureName(r){return String(value(r,['Nama Prosedur','NamaProsedur','Prosedur','Jenis Prosedur'])||'').trim()}
+function requiresDI310(r){return norm(procedureName(r))==='pendaftarantanahpertamakalipemberianhak'}
+function anomalyIssues(r){
+ const nib=filled(value(r,['NIB'])),d305=filled(value(r,['DI305'])),d201=filled(value(r,['DI201B'])),d202=filled(value(r,['Nomor DI202'])),su=filled(value(r,['SU'])),vSu=filled(value(r,['DI307 SU'])),d310=filled(value(r,['DI310','DI 310','Nomor DI310','No DI310'])),grant=requiresDI310(r),hak=filled(value(r,['Nomor hak'])),vHak=filled(value(r,['DI307 Hak'])),d208=filled(value(r,['DI208'])),d301a=filled(value(r,['DI301A','DI 301A','Nomor DI301A']));
+ const a=[];
+ if(d305&&!nib)a.push('NIB kosong tetapi DI305 terisi');if(d201&&!d305)a.push('DI305 kosong tetapi DI201B terisi');if(d202&&!d201)a.push('DI201B kosong tetapi DI202 terisi');if(su&&!d202)a.push('DI202 kosong tetapi Nomor SU terisi');if(vSu&&!su)a.push('Nomor SU kosong tetapi DI307 SU terisi');if(grant&&d310&&!vSu)a.push('DI307 SU kosong tetapi DI310 sudah terisi');if(hak&&!vSu)a.push('DI307 SU kosong tetapi Nomor Hak terisi');if(grant&&hak&&!d310)a.push('DI310 kosong tetapi Nomor Hak sudah terisi pada prosedur Pemberian Hak');if(vHak&&!hak)a.push('Nomor Hak kosong tetapi DI307 Hak terisi');if(d208&&!vHak)a.push('DI307 Hak kosong tetapi DI208 terisi');if(d301a&&!d208)a.push('DI208 kosong tetapi DI301A sudah terisi');return a;
+}
+function parseEvidenceDate(value){
+ if(value instanceof Date&&!isNaN(value))return new Date(value.getFullYear(),value.getMonth(),value.getDate());
+ if(typeof value==='number'&&value>=20000&&value<=80000&&window.XLSX&&XLSX.SSF){const p=XLSX.SSF.parse_date_code(value);if(p)return new Date(p.y,p.m-1,p.d)}
+ const text=String(value??'').trim();if(!text)return null;
+ if(/^\d{5}(?:\.\d+)?$/.test(text)&&window.XLSX&&XLSX.SSF){const p=XLSX.SSF.parse_date_code(Number(text));if(p)return new Date(p.y,p.m-1,p.d)}
+ let m=text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);if(m){let y=+m[3];if(y<100)y+=2000;const d=new Date(y,+m[2]-1,+m[1]);if(d.getFullYear()===y&&d.getMonth()===+m[2]-1&&d.getDate()===+m[1])return d}
+ m=text.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);if(m){const d=new Date(+m[1],+m[2]-1,+m[3]);if(d.getFullYear()===+m[1]&&d.getMonth()===+m[2]-1&&d.getDate()===+m[3])return d}
+ return null;
+}
+function calendarDayNumber(d){return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000}
+function announcementInfo(value){
+ const announced=parseEvidenceDate(value);if(!announced)return null;const today=new Date(),age=Math.floor(calendarDayNumber(today)-calendarDayNumber(announced)),eligible=new Date(announced.getFullYear(),announced.getMonth(),announced.getDate()+14),overdue=Math.max(age-14,0);return {announced,eligible,age,overdue,status:age===14?'Pas 14 hari':age>14?`Lewat ${overdue} hari`:`Belum 14 hari (${Math.max(14-age,0)} hari lagi)`};
+}
+function classify(r){
+ const nomor=Boolean(berkasKey(r)),nama=filled(value(r,['Nama','Nama Pemohon'])),nik=filled(value(r,['Nik','NIK'])),alas=filled(value(r,['Nomor Alas hak','Nomor Alas Hak'])),nib=filled(value(r,['NIB'])),d305=filled(value(r,['DI305'])),d201=filled(value(r,['DI201B'])),d202=filled(value(r,['Nomor DI202'])),su=filled(value(r,['SU'])),vSu=filled(value(r,['DI307 SU'])),d310=filled(value(r,['DI310','DI 310','Nomor DI310','No DI310'])),grant=requiresDI310(r),hak=filled(value(r,['Nomor hak'])),vHak=filled(value(r,['DI307 Hak'])),d208=filled(value(r,['DI208']));
+ if(nomor&&!nama&&!nik)return'noPemohon';if((nama&&!nik)||(nik&&!nama))return'anomaliIdentitas';if(nama&&nik&&!alas)return'alas';if(nama&&nik&&alas&&!nib)return'nib';if(nib&&!d305)return'di305';if(d305&&!d201)return'di201';if(d201&&!d202&&!su&&!vSu&&!hak&&!vHak&&!d208){const info=announcementInfo(value(r,['DI201B']));if(info&&info.age>=14){r.__announcement=info;return'expiredAnnouncement'}return'di202'}if(d202&&!su)return'su';if(su&&!vSu)return'validSu';if(vSu&&!hak){if(grant&&!d310)return'di310';return'hak'}if(hak&&!vHak)return'validHak';if(vHak&&!d208)return'di208';if(d208)return'k1';return null;
+}
+function analyze(){
+ const inputs=[...document.querySelectorAll('.target')];
+ if(inputs.some(x=>+x.value<=0)){$('targetWarning').textContent='Target wajib diisi untuk seluruh desa.';$('targetWarning').classList.remove('hidden');return}
+ inputs.forEach(x=>files[+x.dataset.index].target=+x.value);
+ CONDITIONS.forEach(c=>results[c.key]=[]);duplicates=[];anomalies=[];
+ const seen=new Map(),unique=[];
+ files.forEach(f=>f.data.forEach((source,rowIndex)=>{
+  const r={...source,__file:f.file.name,__kec:f.kec,__desa:f.desa,__target:f.target,__row:rowIndex+2};
+  const key=berkasKey(r);
+  if(key&&seen.has(key)){const first=seen.get(key);duplicates.push({...r,__duplicateKey:key,__firstFile:first.__file,__firstRow:first.__row});return}
+  if(key)seen.set(key,r);unique.push(r);
+ }));
+ unique.forEach(r=>{const issues=anomalyIssues(r);if(issues.length){anomalies.push({...r,__issues:issues.join('; ')});return}const key=classify(r);if(key)results[key].push(r)});
+ const targetByScope=new Map();files.forEach(f=>{const scopeKey=`${f.kec}||${f.desa}`;targetByScope.set(scopeKey,(targetByScope.get(scopeKey)||0)+f.target)});
+ targetByScope.forEach((target,scopeKey)=>{const [kec,desa]=scopeKey.split('||'),booked=unique.filter(r=>r.__kec===kec&&r.__desa===desa&&Boolean(berkasKey(r)));booked.slice(target).forEach((r,index)=>{r.__overBooking={target,sequence:target+index+1,excessNumber:index+1,total:booked.length};results.overBooking.push(r)})});
+ results.k1.filter(r=>!filled(value(r,['DI301A','DI 301A','Nomor DI301A']))).forEach(r=>results.di301a.push(r));
+ results.k1.filter(r=>filled(value(r,['DI301A','DI 301A','Nomor DI301A']))).forEach(r=>results.delivered.push(r));
+ renderResult(unique);
+}
+function renderResult(unique){
+ const target=files.reduce((n,f)=>n+f.target,0),k1=results.k1.length;
+ $('sumTarget').textContent=target.toLocaleString('id-ID');$('sumUnique').textContent=unique.length.toLocaleString('id-ID');$('sumK1').textContent=k1.toLocaleString('id-ID');$('sumDuplicate').textContent=duplicates.length.toLocaleString('id-ID');
+ $('scope').textContent=`${files.length} desa • ${unique.length.toLocaleString('id-ID')} berkas unik • capaian K1 ${target?(k1/target*100).toFixed(1):'0.0'}%`;
+ const dupNos=[...new Set(duplicates.map(d=>d.__duplicateKey))];
+ if(duplicates.length){$('duplicateNotice').innerHTML=`<b>Ditemukan bug Nomor Berkas ganda.</b> ${duplicates.length} baris duplikat dari ${dupNos.length} Nomor Berkas tidak dihitung. Kemunculan pertama tetap dianalisis. <button id="showDuplicates" class="bug-link">Lihat rinciannya</button><div class="bug-list">${dupNos.slice(0,20).map(x=>`<span class="bug-chip">${esc(x)}</span>`).join('')}${dupNos.length>20?`<span class="bug-chip">+${dupNos.length-20} lainnya</span>`:''}</div>`;$('duplicateNotice').classList.remove('hidden');$('showDuplicates').onclick=()=>openDetail('Nomor Berkas Ganda / Bug',duplicates)}else $('duplicateNotice').classList.add('hidden');
+ if(anomalies.length){$('anomalyNotice').innerHTML=`<b>${anomalies.length} berkas memiliki anomali urutan tahapan.</b> Tahap lanjutan terisi saat prasyarat masih kosong. <button id="showAnomalies" class="bug-link">Lihat rinciannya</button>`;$('anomalyNotice').classList.remove('hidden');$('showAnomalies').onclick=()=>openDetail('Anomali Urutan Tahapan',anomalies)}else $('anomalyNotice').classList.add('hidden');
+ const scopeMap=new Map();
+ files.forEach(f=>{const id=`${f.kec}||${f.desa}`;if(!scopeMap.has(id))scopeMap.set(id,{kec:f.kec,desa:f.desa,target:0});scopeMap.get(id).target+=f.target});
+ recapRows=[...scopeMap.values()].map(s=>{
+  const villageRows=unique.filter(r=>r.__kec===s.kec&&r.__desa===s.desa),entry=villageRows.filter(r=>Boolean(berkasKey(r))).length,k1=results.k1.filter(r=>r.__kec===s.kec&&r.__desa===s.desa).length;
+  const counts={};CONDITIONS.forEach(c=>counts[c.key]=results[c.key].filter(r=>r.__kec===s.kec&&r.__desa===s.desa).length);
+  const duplicateCount=duplicates.filter(r=>r.__kec===s.kec&&r.__desa===s.desa).length;
+  return {...s,entry,kurang:Math.max(s.target-entry,0),k1,pct:s.target?k1/s.target*100:0,duplicateCount,counts};
+ });
+ $('summaryVillageRows').innerHTML=recapRows.map((s,i)=>`<tr><td>${i+1}</td><td><b>${esc(s.kec)}</b></td><td><b>${esc(s.desa)}</b></td><td class="num">${s.target.toLocaleString('id-ID')}</td><td class="num">${s.entry.toLocaleString('id-ID')}</td><td class="num">${s.kurang.toLocaleString('id-ID')}</td><td class="num"><b>${s.counts.overBooking.toLocaleString('id-ID')}</b></td><td class="num">${s.k1.toLocaleString('id-ID')}</td><td class="num"><b>${s.pct.toFixed(1)}%</b></td><td class="num">${s.duplicateCount.toLocaleString('id-ID')}</td></tr>`).join('');
+ $('recapMatrix').style.minWidth=`${Math.max(700,260+recapRows.length*170)}px`;
+ $('recapHead').innerHTML='<th style="min-width:250px">Tahapan PTSL</th>'+recapRows.map(s=>`<th class="num" style="min-width:165px">${esc(s.desa)}<br><small>Kec. ${esc(s.kec)}</small></th>`).join('');
+ const conditionHtml=CONDITIONS.map((c,conditionIndex)=>`<tr class="${c.key==='k1'?'done':''}"><td class="stage" title="${esc(c.action)}">${conditionIndex+1}. ${esc(c.name)}</td>${recapRows.map((s,scopeIndex)=>{const n=s.counts[c.key];return `<td class="num"><button class="count ${n?'':'zero'}" data-scope="${scopeIndex}" data-key="${c.key}" ${n?'':'disabled'}>${n.toLocaleString('id-ID')}</button></td>`}).join('')}</tr>`).join('');
+ $('conditionRows').innerHTML=conditionHtml;
+ document.querySelectorAll('[data-scope][data-key]').forEach(b=>b.onclick=()=>{const s=recapRows[+b.dataset.scope],c=CONDITIONS.find(x=>x.key===b.dataset.key),rows=results[c.key].filter(r=>r.__kec===s.kec&&r.__desa===s.desa);openDetail(`${c.name} — ${s.desa}, ${s.kec}`,rows,c.key)});
+ $('targetCard').classList.add('hidden');$('result').classList.remove('hidden');
+}
+function cleanRow(r){const o={};Object.keys(r).filter(k=>!k.startsWith('__')).forEach(k=>o[k]=r[k]);o['Kecamatan Sumber']=r.__kec;o['Desa Sumber']=r.__desa;o['File Sumber']=r.__file;o['Baris Excel']=r.__row;if(r.__overBooking){o['Target SHAT Desa']=r.__overBooking.target;o['Urutan Booking Unik']=r.__overBooking.sequence;o['Kelebihan Booking Ke-']=r.__overBooking.excessNumber;o['Total Booking Unik']=r.__overBooking.total;o['Risiko Booking']='Berpotensi memakai kuota Nomor Berkas desa lain'}if(r.__announcement){o['Tanggal Pengumuman DI201B']=dateText(r.__announcement.announced);o['Tanggal Layak Disahkan']=dateText(r.__announcement.eligible);o['Umur Pengumuman (hari)']=r.__announcement.age;o['Lewat dari 14 Hari']=r.__announcement.overdue;o['Status Masa Pengumuman']=r.__announcement.status}if(r.__issues)o['Anomali Tahapan']=r.__issues;if(r.__duplicateKey){o['Nomor Berkas Normalisasi']=r.__duplicateKey;o['Kemunculan Pertama']=`${r.__firstFile}, baris ${r.__firstRow}`}return o}
+function dateText(date){return new Intl.DateTimeFormat('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}).format(date)}
+function displayValue(v,column){
+ if(v instanceof Date&&!isNaN(v))return dateText(v);
+ const columnKey=norm(column),stageDateColumns=['di305','di201b','di307su','di310','di307hak','di208','di301a'],isDateColumn=columnKey.includes('tanggal')||columnKey.startsWith('tgl')||columnKey.includes('date')||stageDateColumns.includes(columnKey);
+ if(typeof v==='number'&&v>=20000&&v<=80000&&isDateColumn&&window.XLSX&&XLSX.SSF){const p=XLSX.SSF.parse_date_code(v);if(p)return `${String(p.d).padStart(2,'0')}/${String(p.m).padStart(2,'0')}/${p.y}`}
+ return v??'';
+}
+function openDetail(name,rows,conditionKey=null){
+ detailName=name;detailRows=rows;
+ const condition=CONDITIONS.find(c=>c.key===conditionKey),districts=[...new Set(rows.map(r=>r.__kec).filter(Boolean))],villages=[...new Set(rows.map(r=>r.__desa).filter(Boolean))],districtText=districts.length===1?districts[0]:districts.length?`${districts.length} kecamatan`:'Tidak diketahui',villageText=villages.length===1?villages[0]:villages.length?`${villages.length} desa`:'Tidak diketahui';
+ $('modalTitle').textContent=name;$('modalSubtitle').textContent=`Data: ${name} • Kecamatan: ${districtText} • Desa: ${villageText}`;$('detailCount').textContent=`Total ${rows.length.toLocaleString('id-ID')} data`;
+ $('detailContext').innerHTML=`<span class="context-chip">Jenis data: <b>${esc(name)}</b></span><span class="context-chip">Kecamatan: <b>${esc(districtText)}</b></span><span class="context-chip">Desa: <b>${esc(villageText)}</b></span><span class="context-chip">Jumlah: <b>${rows.length.toLocaleString('id-ID')}</b></span>${condition?`<span class="context-chip">Tindak lanjut: <b>${esc(condition.action)}</b></span>`:''}`;
+ const cleaned=rows.map(cleanRow),preferred=['Nomor Berkas','Nomor berkas','Nama','Nik','NIK','Kecamatan Sumber','Desa Sumber','NIB','DI305','DI201B','Nomor DI202','SU','DI307 SU','Nomor hak','DI307 Hak','DI208','Anomali Tahapan','File Sumber','Baris Excel','Kemunculan Pertama'];
+ const all=cleaned.length?[...new Set(cleaned.flatMap(Object.keys))]:[];
+ let cols;
+ if(conditionKey&&DETAIL_COLUMNS[conditionKey]){const requested=['Nomor Berkas','No Berkas','No. Berkas','NomorBerkas','Status Berkas','Nomor Permohonan','Nama','Nama Pemohon',...DETAIL_COLUMNS[conditionKey],'Kecamatan Sumber','Desa Sumber','File Sumber','Baris Excel'];cols=[];requested.forEach(req=>all.filter(c=>norm(c)===norm(req)).forEach(c=>{if(!cols.includes(c))cols.push(c)}));(REQUIRED_COLUMNS[conditionKey]||[]).forEach(required=>{if(!cols.some(c=>norm(c)===norm(required)))cols.push(required)})}
+ else cols=[...preferred.filter(x=>all.includes(x)),...all.filter(x=>!preferred.includes(x))];
+ $('detailTable').innerHTML=cleaned.length?`<thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${cleaned.map(r=>`<tr>${cols.map(c=>`<td>${esc(displayValue(r[c],c))}</td>`).join('')}</tr>`).join('')}</tbody>`:'<tbody><tr><td>Tidak ada data.</td></tr></tbody>';
+ $('exportDetail').disabled=!rows.length;$('modal').classList.remove('hidden');
+}
+function exportDetail(){const ws=XLSX.utils.json_to_sheet(detailRows.map(cleanRow)),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');XLSX.writeFile(wb,`PTSL_${detailName.replace(/[^a-z0-9]+/gi,'_')}.xlsx`)}
+function safeName(text){return String(text||'Tanpa Nama').replace(/[<>:"/\\|?*\x00-\x1F]/g,'_').replace(/\s+/g,' ').trim().slice(0,80)}
+function rowsWorkbook(rows,sheetName='EVIDEN'){
+ const wb=XLSX.utils.book_new(),ws=rows.length?XLSX.utils.json_to_sheet(rows.map(cleanRow)):XLSX.utils.aoa_to_sheet([['KETERANGAN'],['Tidak ada eviden pada tahapan ini.']]);ws['!cols']=[{wch:24},{wch:24},{wch:20},{wch:20},{wch:20},{wch:20}];XLSX.utils.book_append_sheet(wb,ws,sheetName.slice(0,31));return wb;
+}
+function workbookBytes(wb){return XLSX.write(wb,{bookType:'xlsx',type:'array'})}
+async function exportRecap(){
+ const button=$('downloadRecap'),oldText=button.textContent;button.disabled=true;button.textContent='Menyiapkan ZIP…';
+ try{
+  if(typeof JSZip==='undefined')throw Error('Pembuat ZIP belum berhasil dimuat. Pastikan perangkat terhubung ke internet lalu muat ulang aplikasi.');
+  const zip=new JSZip(),summary=recapRows.map((s,i)=>({'No.':i+1,'Kecamatan':s.kec,'Desa':s.desa,'Target SHAT':s.target,'Sudah Terentry':s.entry,'Kurang Entry':s.kurang,'Kelebihan Booking':s.counts.overBooking,'K1':s.k1,'Capaian K1 (%)':Number(s.pct.toFixed(1)),'Duplikat/Bug':s.duplicateCount}));
+  const matrix=[['TAHAPAN PTSL',...recapRows.map(s=>`${s.desa} (Kec. ${s.kec})`)]];CONDITIONS.forEach((c,i)=>matrix.push([`${i+1}. ${c.name}`,...recapRows.map(s=>s.counts[c.key])]));
+  const overall=XLSX.utils.book_new(),summaryWs=XLSX.utils.json_to_sheet(summary),stageWs=XLSX.utils.aoa_to_sheet(matrix);summaryWs['!cols']=[{wch:6},{wch:22},{wch:24},{wch:14},{wch:17},{wch:15},{wch:18},{wch:10},{wch:16},{wch:15}];stageWs['!cols']=[{wch:38},...recapRows.map(()=>({wch:25}))];XLSX.utils.book_append_sheet(overall,summaryWs,'RINGKASAN DESA');XLSX.utils.book_append_sheet(overall,stageWs,'18 TAHAPAN');
+  if(anomalies.length)XLSX.utils.book_append_sheet(overall,XLSX.utils.json_to_sheet(anomalies.map(cleanRow)),'ANOMALI TAHAPAN');
+  if(duplicates.length)XLSX.utils.book_append_sheet(overall,XLSX.utils.json_to_sheet(duplicates.map(cleanRow)),'DUPLIKAT BUG');
+  zip.file('00_REKAP_KESELURUHAN.xlsx',workbookBytes(overall));
+  recapRows.forEach((s,index)=>{
+   const folder=zip.folder(`${String(index+1).padStart(2,'0')}_${safeName(s.desa)}_Kec_${safeName(s.kec)}`);
+   const oneSummary=[{'Kecamatan':s.kec,'Desa':s.desa,'Target SHAT':s.target,'Sudah Terentry':s.entry,'Kurang Entry':s.kurang,'Kelebihan Booking':s.counts.overBooking,'K1':s.k1,'Capaian K1 (%)':Number(s.pct.toFixed(1)),'Duplikat/Bug':s.duplicateCount}];
+   const villageWb=XLSX.utils.book_new(),vSummary=XLSX.utils.json_to_sheet(oneSummary),vStages=XLSX.utils.aoa_to_sheet([['TAHAPAN','JUMLAH'],...CONDITIONS.map((c,i)=>[`${i+1}. ${c.name}`,s.counts[c.key]])]);XLSX.utils.book_append_sheet(villageWb,vSummary,'RINGKASAN');XLSX.utils.book_append_sheet(villageWb,vStages,'18 TAHAPAN');folder.file('00_Rekap_Desa.xlsx',workbookBytes(villageWb));
+   CONDITIONS.forEach(c=>{const rows=(results[c.key]||[]).filter(r=>r.__kec===s.kec&&r.__desa===s.desa);if(rows.length)folder.file(`${SHEET_NAMES[c.key].replace(/-/g,'_')}.xlsx`,workbookBytes(rowsWorkbook(rows,SHEET_NAMES[c.key])))});
+   const villageAnomalies=anomalies.filter(r=>r.__kec===s.kec&&r.__desa===s.desa);if(villageAnomalies.length)folder.file('19_Anomali_Tahapan.xlsx',workbookBytes(rowsWorkbook(villageAnomalies,'ANOMALI')));
+   const villageDuplicates=duplicates.filter(r=>r.__kec===s.kec&&r.__desa===s.desa);if(villageDuplicates.length)folder.file('20_Duplikat_Bug.xlsx',workbookBytes(rowsWorkbook(villageDuplicates,'DUPLIKAT')));
+  });
+  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PTSL_Rekap_dan_Eviden_per_Desa.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ }catch(error){alert(`Unduhan gagal: ${error.message}`)}finally{button.disabled=false;button.textContent=oldText}
+}
+function resetAll(){files=[];results={};duplicates=[];anomalies=[];renderFiles();$('result').classList.add('hidden');$('targetCard').classList.add('hidden');$('uploadCard').classList.remove('hidden');$('fileInput').value=''}
+
+const drop=$('drop');drop.onclick=()=>$('fileInput').click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click()}};$('fileInput').onchange=e=>addFiles(e.target.files);drop.ondragover=e=>{e.preventDefault();drop.classList.add('drag')};drop.ondragleave=()=>drop.classList.remove('drag');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('drag');addFiles(e.dataTransfer.files)};
+$('toTarget').onclick=showTargets;$('backUpload').onclick=()=>{$('targetCard').classList.add('hidden');$('uploadCard').classList.remove('hidden')};$('analyze').onclick=analyze;$('downloadRecap').onclick=exportRecap;$('reset').onclick=resetAll;$('modalClose').onclick=()=>$('modal').classList.add('hidden');$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').classList.add('hidden')};$('exportDetail').onclick=exportDetail;
+</script>
+</body>
+</html>
